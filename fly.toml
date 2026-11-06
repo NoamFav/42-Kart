@@ -1,0 +1,36 @@
+# One small machine that sleeps when nobody is watching, plus a 1 GB volume for SQLite.
+app = "42-kart"
+primary_region = "cdg"
+
+[build]
+
+[env]
+  PORT = "8080"
+  DB_PATH = "/data/kart.db"
+
+[[mounts]]
+  source = "kart_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "60s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
