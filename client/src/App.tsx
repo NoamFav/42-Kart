@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { World } from './game/world.ts';
 import type { CameraMode } from './game/world.ts';
+import { toRoute, toUrl } from './paths.ts';
 import { setWorld } from './stage.ts';
 import { Landing } from './ui/Landing.tsx';
 import { Race } from './ui/Race.tsx';
@@ -19,7 +20,7 @@ export function App() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const labels = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
-  const [path, setPath] = useState(location.pathname);
+  const [path, setPath] = useState(toRoute(location.pathname));
   const [cameraMode, setCameraMode] = useState<CameraMode>('drone');
   const [supported] = useState(webglAvailable);
 
@@ -41,13 +42,13 @@ export function App() {
   }, [supported]);
 
   useEffect(() => {
-    const onPop = () => setPath(location.pathname);
+    const onPop = () => setPath(toRoute(location.pathname));
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   const go = (next: string) => {
-    history.pushState(null, '', next);
+    history.pushState(null, '', toUrl(next));
     setPath(next);
   };
 

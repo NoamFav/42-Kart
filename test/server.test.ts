@@ -127,6 +127,23 @@ test('garbage on the socket or in the URL does not bring the server down', async
   c.ws.close();
 });
 
+test('only the Pages origin may call the API from another site', async () => {
+  const preflight = (origin: string) =>
+    fetch(`${BASE}/api/rooms`, { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST' } });
+  const allowed = await preflight('https://noamfav.github.io');
+  assert.equal(allowed.status, 204);
+  assert.equal(allowed.headers.get('access-control-allow-origin'), 'https://noamfav.github.io');
+  assert.match(allowed.headers.get('access-control-allow-headers') ?? '', /content-type/);
+
+  const other = await preflight('https://evil.example');
+  assert.equal(other.headers.get('access-control-allow-origin'), null);
+
+  const res = await fetch(`${BASE}/api/rooms`, {
+    method: 'POST', headers: { origin: 'https://noamfav.github.io', 'content-type': 'application/json' }, body: '{}',
+  });
+  assert.equal(res.headers.get('access-control-allow-origin'), 'https://noamfav.github.io');
+});
+
 test('progress survives a reconnect', async () => {
   const room = (await post('/api/rooms', {})).body.code;
   const joined = await post(`/api/rooms/${room}/join`, { login: 'alice', pin: '1234', kart: DEFAULT_KART, done: ['libft'] });

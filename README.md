@@ -49,6 +49,12 @@ fly volumes create kart_data --region cdg --size 1 --yes
 fly deploy --ha=false
 ```
 
+## GitHub Pages
+
+Pushing to `main` publishes the client to https://noamfav.github.io/42-Kart/ through `.github/workflows/pages.yml`. Pages only serves static files, so that copy still talks to the Fly backend for everything live.
+
+If you use a different Pages address, update `ALLOWED_ORIGINS` on the server (it defaults to `https://noamfav.github.io`) and `VITE_BASE` in the workflow. Sessions are stored per site, so a kart joined on `fly.dev` signs in with its PIN on Pages.
+
 ## Changing the curriculum
 
 Everything lives in `shared/curriculum.ts`. Change a project's `km` and the track, gates and scoring follow.

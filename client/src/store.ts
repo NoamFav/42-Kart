@@ -3,6 +3,7 @@ import type {
   ClientMsg, Effect, ItemId, KmPoint, LapTime, PlayerPublic, RaceEvent, RoomInfo, ServerMsg,
 } from '../../shared/protocol.ts';
 import { sfx } from './audio.ts';
+import { API_ORIGIN, socketUrl } from './paths.ts';
 import { world } from './stage.ts';
 
 export interface Banner {
@@ -198,8 +199,7 @@ export function toast(text: string) {
 function open() {
   if (!currentRoom) return;
   const room = currentRoom;
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  const ws = new WebSocket(socketUrl());
   socket = ws;
   ws.onopen = () => {
     retry = 0;
@@ -247,7 +247,7 @@ export const signOut = () => {
 /* ---- HTTP ---- */
 
 async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const res = await fetch(API_ORIGIN + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const data = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok) throw new Error(data.error ?? 'Something went wrong.');
   return data;

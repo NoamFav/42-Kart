@@ -10,6 +10,8 @@ import { GameError, Race } from './race.ts';
 const PORT = Number(process.env.PORT ?? 4242);
 const DB_PATH = process.env.DB_PATH ?? './data/kart.db';
 const DIST = resolve('dist');
+/** Other sites allowed to call the API: the copy of the client on GitHub Pages. */
+const ALLOWED_ORIGINS = new Set((process.env.ALLOWED_ORIGINS ?? 'https://noamfav.github.io').split(','));
 
 interface Client {
   ws: WebSocket;
@@ -100,6 +102,20 @@ function limited(req: IncomingMessage, max: number): boolean {
 }
 
 async function api(req: IncomingMessage, res: ServerResponse, path: string) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('access-control-allow-origin', origin);
+    res.setHeader('vary', 'origin');
+  }
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'access-control-allow-methods': 'GET, POST',
+      'access-control-allow-headers': 'content-type',
+      'access-control-max-age': '86400',
+    });
+    return res.end();
+  }
+
   if (path === '/api/health') return json(res, 200, { ok: true });
 
   if (req.method === 'POST' && path === '/api/rooms') {
